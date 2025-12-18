@@ -12,6 +12,10 @@ export const TopicController = {
 
       const topic = await TopicService.createTopic(teamId, title);
 
+      // Emit WebSocket event
+      const io = req.app.get("io");
+      if (io) io.to(`team:${teamId}`).emit("topic:created", { teamId, topic });
+
       res.status(201).json({
         success: true,
         message: "Topic successfully created",
@@ -43,6 +47,12 @@ export const TopicController = {
 
       const updatedTopic = await TopicService.updateTopic(topicId, req.body);
 
+      // Emit WebSocket event to team room
+      const io = req.app.get("io");
+      if (io && updatedTopic.teamId) {
+        io.to(`team:${updatedTopic.teamId}`).emit("topic:updated", { topicId, topic: updatedTopic });
+      }
+
       res.status(200).json({
         success: true,
         message: "Topic successfully updated",
@@ -58,12 +68,18 @@ export const TopicController = {
     try {
       const { topicId } = req.params;
 
-      const deletedTopic = await TopicService.deleteTopic(topicId);
+      const result = await TopicService.deleteTopic(topicId);
+
+      // Emit WebSocket event to team room
+      const io = req.app.get("io");
+      if (io && result.teamId) {
+        io.to(`team:${result.teamId}`).emit("topic:deleted", { topicId });
+      }
 
       res.status(200).json({
         success: true,
         message: "Topic successfully deleted",
-        data: deletedTopic,
+        data: result,
       });
 
     } catch (error) {
@@ -77,6 +93,12 @@ export const TopicController = {
       const { topicId } = req.params;
 
       const subtopic = await TopicService.createSubtopic(topicId, req.body);
+
+      // Emit WebSocket event to team room (get teamId from subtopic's topic)
+      const io = req.app.get("io");
+      if (io && subtopic.topic?.teamId) {
+        io.to(`team:${subtopic.topic.teamId}`).emit("subtopic:created", { topicId, subtopic });
+      }
 
       res.status(201).json({
         success: true,
@@ -108,6 +130,12 @@ export const TopicController = {
       const { subtopicId } = req.params;
       const updatedSubtopic = await TopicService.updateSubtopic(subtopicId, req.body);
 
+      // Emit WebSocket event to team room
+      const io = req.app.get("io");
+      if (io && updatedSubtopic.teamId) {
+        io.to(`team:${updatedSubtopic.teamId}`).emit("subtopic:updated", { subtopicId, subtopic: updatedSubtopic });
+      }
+
       res.status(200).json({
         success: true,
         message: "Subtopic successfully updated",
@@ -122,12 +150,18 @@ export const TopicController = {
     try {
       const { subtopicId } = req.params;
 
-      const deletedSubtopic = await TopicService.deleteSubtopic(subtopicId);
+      const result = await TopicService.deleteSubtopic(subtopicId);
+
+      // Emit WebSocket event to team room
+      const io = req.app.get("io");
+      if (io && result.teamId) {
+        io.to(`team:${result.teamId}`).emit("subtopic:deleted", { subtopicId });
+      }
 
       res.status(200).json({
         success: true,
         message: "Subtopic successfully deleted",
-        data: deletedSubtopic,
+        data: result,
       });
 
     } catch (error) {

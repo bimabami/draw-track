@@ -13,10 +13,13 @@ export const TaskService = {
 
     const teamId = subtopic.topic?.teamId;
 
-    const isMember = await TeamRepository.IsMember(teamId, assigneeId);
-    if (!isMember) throw new CustomError(400, "Assignee must be a member of the team");
+    // Only validate assigneeId if it's provided
+    if (assigneeId) {
+      const isMember = await TeamRepository.IsMember(teamId, assigneeId);
+      if (!isMember) throw new CustomError(400, "Assignee must be a member of the team");
 
-    if (assigneeId === ownerId) throw new CustomError(400, "Manager cannot assign task to themselves");
+      if (assigneeId === ownerId) throw new CustomError(400, "Manager cannot assign task to themselves");
+    }
 
     const task = await TaskRepository.Create({
       title,

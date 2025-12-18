@@ -8,5 +8,7 @@ router.post(
   AuthController.Register
 );
 router.post("/login", AuthController.Login);
+router.get("/users", AuthController.GetAllUsers);
+router.delete("/users/:id", AuthController.DeleteUser);
 
 export default router;

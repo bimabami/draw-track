@@ -36,7 +36,8 @@ export const TopicRepository = {
   // Subtopic
   CreateSubtopic: async (topicId, payload) => {
     const createdSubtopic = await prisma.subtopic.create({
-      data: { title: payload.title, description: payload.description, topicId },
+      data: { title: payload.title, description: payload.description || "", topicId },
+      include: { topic: { select: { id: true, teamId: true } } },
     });
     return createdSubtopic;
   },

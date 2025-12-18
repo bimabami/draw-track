@@ -7,8 +7,13 @@ export const DocumentController = {
     try {
       const { teamId, taskId } = req.params;
       const file = req.file;
+      const type = req.body.type || "SHOP_DRAWING";
 
-      const document = await DocumentService.uploadDocument(req.user.id, teamId, taskId, file);
+      const document = await DocumentService.uploadDocument(req.user.id, teamId, taskId, file, type);
+
+      // Emit WebSocket event
+      const io = req.app.get("io");
+      if (io) io.to(`task:${taskId}`).emit("document:uploaded", { taskId, document });
 
       res.status(201).json({
         success: true,
@@ -23,8 +28,9 @@ export const DocumentController = {
   listDocument: async (req, res, _next) => {
     try {
       const { teamId, taskId } = req.params;
+      const type = req.query.type || null;
 
-      const documents = await DocumentService.listDocument(req.user.id, teamId, taskId);
+      const documents = await DocumentService.listDocument(req.user.id, teamId, taskId, type);
 
       res.status(200).json({
         success: true,
@@ -41,6 +47,10 @@ export const DocumentController = {
       const { teamId, taskId, docId } = req.params;
 
       const document = await DocumentService.deleteDocument(req.user.id, teamId, taskId, docId);
+
+      // Emit WebSocket event
+      const io = req.app.get("io");
+      if (io) io.to(`task:${taskId}`).emit("document:deleted", { taskId, docId });
 
       res.status(200).json({
         success: true,

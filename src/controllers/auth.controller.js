@@ -32,6 +32,34 @@ export const AuthController = {
     }
   },
 
+  GetAllUsers: async (req, res, _next) => {
+    try {
+      const users = await AuthService.GetAllUsers();
+
+      res.status(200).json({
+        success: true,
+        message: "Users retrieved successfully",
+        data: users,
+      });
+    } catch (error) {
+      _next(error);
+    }
+  },
+
+  DeleteUser: async (req, res, _next) => {
+    try {
+      const { id } = req.params;
+      await AuthService.DeleteUser(id);
+
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      _next(error);
+    }
+  },
+
   Login: async (req, res, _next) => {
     try {
       await LoginSchema.validate(req.body, {

@@ -5,3 +5,6 @@ node_modules
 /generated/prisma
 
 /src/generated/prisma
+# Uploaded files (stored locally)
+/uploads/*
+!/uploads/.gitkeep

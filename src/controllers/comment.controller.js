@@ -47,7 +47,16 @@ export const CommentController = {
       );
 
       const io = req.app.get("io");
-      if (io) io.to(`task:${taskId}`).emit("comment:file", attachment);
+      if (io) {
+        // Send clean attachment data with explicit commentId
+        io.to(`task:${taskId}`).emit("comment:file", {
+          id: attachment.id,
+          commentId: commentId,
+          filename: attachment.filename,
+          url: attachment.url,
+          size: attachment.size,
+        });
+      }
 
       res
         .status(201)

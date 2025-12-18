@@ -22,15 +22,17 @@ export const TopicService = {
     if (!topic) throw new CustomError(404, "Topic not found");
 
     const updatedTopic = await TopicRepository.Update(topicId, data);
-
-    return updatedTopic;
+    // Return with teamId for WebSocket routing
+    return { ...updatedTopic, teamId: topic.teamId };
   },
 
   deleteTopic: async (topicId) => {
     const topic = await TopicRepository.GetById(topicId);
     if (!topic) throw new CustomError(404, "Topic not found");
-
-    return await TopicRepository.Delete(topicId);
+    
+    const teamId = topic.teamId;
+    await TopicRepository.Delete(topicId);
+    return { topicId, teamId };
   },
 
   // Subtopic
@@ -57,14 +59,16 @@ export const TopicService = {
     if (!subtopic) throw new CustomError(404, "Subtopic not found");
 
     const updatedSubtopic = await TopicRepository.UpdateSubtopic(subtopicId, data);
-
-    return updatedSubtopic;
+    // Return with teamId for WebSocket routing
+    return { ...updatedSubtopic, teamId: subtopic.topic?.teamId };
   },
 
   deleteSubtopic: async (subtopicId) => {
     const subtopic = await TopicRepository.GetSubtopicById(subtopicId);
     if (!subtopic) throw new CustomError(404, "Subtopic not found");
 
-    return await TopicRepository.DeleteSubtopic(subtopicId);
+    const teamId = subtopic.topic?.teamId;
+    await TopicRepository.DeleteSubtopic(subtopicId);
+    return { subtopicId, teamId };
   },
 };

@@ -2,7 +2,21 @@ import prisma from "../db/index.js";
 
 export const TeamRepository = {
   Create: async (payload) => {
-    const { name, description, ownerId } = payload;
+    const { name, description, ownerId, topics } = payload;
+    
+    // Prepare topics data if provided
+    const topicsData = topics && topics.length > 0 ? {
+      create: topics.map(topic => ({
+        title: topic.name,
+        subtopics: {
+          create: topic.subTopics?.map(subtopic => ({
+            title: subtopic.name,
+            description: subtopic.description || ""
+          })) || []
+        }
+      }))
+    } : undefined;
+    
     const team = await prisma.team.create({
       data: {
         name,
@@ -17,8 +31,16 @@ export const TeamRepository = {
             }
           },
         },
+        ...(topicsData && { topics: topicsData })
       },
-      include: { members: true },
+      include: { 
+        members: true,
+        topics: {
+          include: {
+            subtopics: true
+          }
+        }
+      },
     });
     return team;
   },
@@ -26,7 +48,17 @@ export const TeamRepository = {
   GetTeamsByUser: (userId) => {
     return prisma.userTeam.findMany({
       where: { userId },
-      include: { team: true },
+      include: { 
+        team: {
+          include: {
+            topics: {
+              include: {
+                subtopics: true
+              }
+            }
+          }
+        }
+      },
     });
   },
 
@@ -73,6 +105,68 @@ export const TeamRepository = {
     return prisma.userTeam.findFirst({
       where: { teamId, userId },
       select: { id: true, role: true },
+    });
+  },
+
+  GetMembershipById: async (membershipId) => {
+    return prisma.userTeam.findUnique({
+      where: { id: membershipId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          }
+        }
+      }
+    });
+  },
+
+  AddMember: async (teamId, userId, role = "STAFF") => {
+    return prisma.userTeam.create({
+      data: {
+        teamId,
+        userId,
+        role,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          }
+        }
+      }
+    });
+  },
+
+  RemoveMember: async (membershipId) => {
+    return prisma.userTeam.delete({
+      where: { id: membershipId },
+    });
+  },
+
+  UpdateMemberRole: async (membershipId, role) => {
+    return prisma.userTeam.update({
+      where: { id: membershipId },
+      data: { role },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          }
+        }
+      }
     });
   },
 };

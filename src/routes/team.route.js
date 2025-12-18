@@ -12,4 +12,9 @@ router.get("/:teamId", verifyToken, TeamController.getTeamDetails);
 router.put("/:teamId", verifyToken, rbacTeam([TeamRoleAccess.MANAGER]), TeamController.updateTeam);
 router.delete("/:teamId", verifyToken, rbacTeam([TeamRoleAccess.MANAGER]), TeamController.deleteTeam);
 
+// Member management routes
+router.post("/:teamId/members", verifyToken, rbacTeam([TeamRoleAccess.MANAGER]), TeamController.addMember);
+router.delete("/:teamId/members/:memberId", verifyToken, rbacTeam([TeamRoleAccess.MANAGER]), TeamController.removeMember);
+router.put("/:teamId/members/:memberId", verifyToken, rbacTeam([TeamRoleAccess.MANAGER]), TeamController.updateMemberRole);
+
 export default router;

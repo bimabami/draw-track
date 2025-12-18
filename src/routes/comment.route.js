@@ -12,7 +12,7 @@ router.post("/:teamId/task/:taskId/comments/:parentId", verifyToken, rbacTeam([T
 
 router.get("/:teamId/task/:taskId/comments", verifyToken, rbacTeam([TeamRoleAccess.MANAGER, TeamRoleAccess.STAFF]), CommentController.list);
 
-router.post("/comments/:commentId/file", verifyToken, rbacTeam([TeamRoleAccess.MANAGER, TeamRoleAccess.STAFF]), uploadMiddleware.single, CommentController.uploadFile);
+router.post("/:teamId/task/:taskId/comments/:commentId/file", verifyToken, rbacTeam([TeamRoleAccess.MANAGER, TeamRoleAccess.STAFF]), uploadMiddleware.single, CommentController.uploadFile);
 
 router.delete("/:teamId/task/:taskId/comments/:commentId", verifyToken, rbacTeam([TeamRoleAccess.MANAGER, TeamRoleAccess.STAFF]), CommentController.delete);
 

@@ -13,22 +13,31 @@ export const handleUpload = async (buffer, originalName) => {
     const timestamp = Date.now();
     const publicId = `${base}-${timestamp}`;
 
-    cloudinary.uploader
-      .upload_stream(
-        {
-          resource_type: "auto",
-          folder: "documents",
-          public_id: publicId,
-          overwrite: false,
-          unique_filename: false,
-          access_mode: "public",
-        },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve({ ...result, public_id: publicId });
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw", // Use "raw" for non-image files like DWG, PDF, etc.
+        folder: "documents",
+        public_id: publicId,
+        overwrite: false,
+        unique_filename: false,
+        access_mode: "public",
+        timeout: 120000, // 2 minutes timeout for large files
+      },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary upload error:", error);
+          return reject(error);
         }
-      )
-      .end(buffer);
+        resolve({ ...result, public_id: publicId });
+      }
+    );
+
+    uploadStream.on('error', (error) => {
+      console.error("Upload stream error:", error);
+      reject(error);
+    });
+
+    uploadStream.end(buffer);
   });
 };
 

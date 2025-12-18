@@ -4,6 +4,25 @@ export const TaskRepository = {
   Create: async (payload) => {
     const task = await prisma.task.create({
       data: payload,
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          }
+        },
+        subtopic: {
+          include: {
+            topic: {
+              select: {
+                id: true,
+                teamId: true,
+              }
+            }
+          }
+        }
+      }
     });
     return task;
   },
@@ -48,6 +67,25 @@ export const TaskRepository = {
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
       data,
+      include: {
+        assignee: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          }
+        },
+        subtopic: {
+          include: {
+            topic: {
+              select: {
+                id: true,
+                teamId: true,
+              }
+            }
+          }
+        }
+      }
     });
     return updatedTask;
   },

@@ -20,6 +20,7 @@ model User {
   password      String
   name          String?
   avatarUrl     String?
+  role          UserRole       @default(STAFF)
   teams         UserTeam[]
   comments      Comment[]
   tasksOwned    Task[]         @relation("OwnerTasks")
@@ -28,6 +29,11 @@ model User {
   notifications Notification[] @relation("UserNotifications")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+enum UserRole {
+  STAFF
+  MANAGER
 }
 
 model Team {
@@ -139,14 +145,20 @@ model CommentAttachment {
 }
 
 model Document {
-  id           String   @id @default(uuid())
+  id           String       @id @default(uuid())
   filename     String
   url          String
-  uploadedBy   User     @relation("UserDocuments", fields: [uploadedById], references: [id])
+  type         DocumentType @default(SHOP_DRAWING)
+  uploadedBy   User         @relation("UserDocuments", fields: [uploadedById], references: [id])
   uploadedById String
-  task         Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task         Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId       String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime     @default(now())
+}
+
+enum DocumentType {
+  SHOP_DRAWING
+  FOR_CONSTRUCTION
 }
 
 model Notification {

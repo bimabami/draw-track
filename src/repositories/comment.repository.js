@@ -23,6 +23,11 @@ export const CommentRepository = {
   CreateAttachment: async (data) => {
     return prisma.commentAttachment.create({
       data,
+      include: {
+        comment: {
+          select: { id: true, taskId: true },
+        },
+      },
     });
   },
 

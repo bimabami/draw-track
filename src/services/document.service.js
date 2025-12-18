@@ -1,12 +1,12 @@
 import { DocumentRepository } from "../repositories/document.repository.js";
 import { TaskRepository } from "../repositories/task.repository.js";
 import { TeamRepository } from "../repositories/team.repository.js";
-import { handleUpload } from "../utils/cloudinary.js";
+import { handleLocalUpload, deleteLocalFile } from "../utils/localStorage.js";
 import { CustomError } from "../utils/customError.js";
 
 
 export const DocumentService = {
-  uploadDocument: async (uploaderId, teamId, taskId, file) => {
+  uploadDocument: async (uploaderId, teamId, taskId, file, type = "SHOP_DRAWING") => {
     if (!file) throw new CustomError(400, "No file uploaded");
 
     const task = await TaskRepository.GetById(taskId);
@@ -15,26 +15,28 @@ export const DocumentService = {
     const isMember = await TeamRepository.IsMember(teamId, uploaderId);
     if (!isMember) throw new CustomError(403, "User is not a member of the team");
 
-    const uploadResult = await handleUpload(file.buffer, file.originalname);
+    // Use local file storage instead of Cloudinary
+    const uploadResult = await handleLocalUpload(file.buffer, file.originalname, "documents");
 
     const document = await DocumentRepository.Upload(
       taskId,
       uploadResult,
       uploaderId,
-      file.originalname
+      file.originalname,
+      type
     );
 
     return document;
   },
 
-  listDocument: async (userId, teamId, taskId) => {
+  listDocument: async (userId, teamId, taskId, type = null) => {
     const task = await TaskRepository.GetById(taskId);
     if (!task) throw new CustomError(404, "Task not found");
 
     const isMember = await TeamRepository.IsMember(teamId, userId);
     if (!isMember) throw new CustomError(403, "User is not a member of the team");
 
-    const documents = await DocumentRepository.ListByTask(taskId);
+    const documents = await DocumentRepository.ListByTask(taskId, type);
 
     return documents;
   },
